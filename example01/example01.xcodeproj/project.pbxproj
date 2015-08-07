@@ -13,6 +13,7 @@
 		E6AE28A91B74453800CCFAAC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E6AE28A81B74453800CCFAAC /* Images.xcassets */; };
 		E6AE28AC1B74453800CCFAAC /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = E6AE28AA1B74453800CCFAAC /* LaunchScreen.xib */; };
 		E6AE28B81B74453800CCFAAC /* example01Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE28B71B74453800CCFAAC /* example01Tests.swift */; };
+		E6AE28C21B7484DF00CCFAAC /* ASMapLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE28C11B7484DF00CCFAAC /* ASMapLauncher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +37,7 @@
 		E6AE28B11B74453800CCFAAC /* example01Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = example01Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E6AE28B61B74453800CCFAAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E6AE28B71B74453800CCFAAC /* example01Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = example01Tests.swift; sourceTree = "<group>"; };
+		E6AE28C11B7484DF00CCFAAC /* ASMapLauncher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ASMapLauncher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				E6AE28A11B74453800CCFAAC /* AppDelegate.swift */,
+				E6AE28C11B7484DF00CCFAAC /* ASMapLauncher.swift */,
 				E6AE28A31B74453800CCFAAC /* ViewController.swift */,
 				E6AE28A51B74453800CCFAAC /* Main.storyboard */,
 				E6AE28A81B74453800CCFAAC /* Images.xcassets */,
@@ -212,6 +215,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E6AE28C21B7484DF00CCFAAC /* ASMapLauncher.swift in Sources */,
 				E6AE28A41B74453800CCFAAC /* ViewController.swift in Sources */,
 				E6AE28A21B74453800CCFAAC /* AppDelegate.swift in Sources */,
 			);

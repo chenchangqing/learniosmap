@@ -9,27 +9,29 @@
 import UIKit
 import MapKit
 
-class ViewController: UIViewController,MKMapViewDelegate {
+class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
     
-    let sourceName      = "上海"
-    let destinationName = "高安"
+    private let sourceName      = "上海"
+    private let destinationName = "高安"
     
-    let geocoder        = CLGeocoder()          // 反编码类
-    let request         = MKDirectionsRequest() // 导航请求
+    private let geocoder        = CLGeocoder()          // 反编码类
+    private let request         = MKDirectionsRequest() // 导航请求
     
-    var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
-    var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
+    private var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
+    private var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
     
-    var sourceItem              : MKMapItem!            // 出发地节点
-    var destinationItem         : MKMapItem!            // 目的地节点
+    private var sourceItem              : MKMapItem!            // 出发地节点
+    private var destinationItem         : MKMapItem!            // 目的地节点
+    private var mapLauncher             : ASMapLauncher!        // 打开地图的工具类
     
     // MARK: -
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        mapLauncher                     = ASMapLauncher()
         mapView.delegate                = self                                    // 地图代理
         request.transportType           = MKDirectionsTransportType.Automobile    // 路径类型汽车
         request.requestsAlternateRoutes = false                                   // 设置是否搜索多条线路
@@ -160,10 +162,18 @@ class ViewController: UIViewController,MKMapViewDelegate {
         }
     }
 
+    // MARK: -
+    
     /**
      * 打开苹果地图或谷歌地图
      */
     @IBAction func navigationClick(sender: UIButton) {
+        
+//        lanunchTypeOne()
+        lanunchTypeTwo()
+    }
+    
+    private func lanunchTypeOne() {
         
         // 设置开始、结束节点
         let mapItems = [sourceItem,destinationItem]
@@ -177,6 +187,39 @@ class ViewController: UIViewController,MKMapViewDelegate {
         // 打开苹果地图开始导航
         MKMapItem.openMapsWithItems(mapItems, launchOptions: dic)
     }
+    
+    private func lanunchTypeTwo() {
+        
+        // 使用ActionSheet
+        let actionSheet = UIActionSheet(title: "请选择", delegate: self, cancelButtonTitle: nil, destructiveButtonTitle: nil)
+        
+        for mapApp in mapLauncher.getMapApps() {
+            
+            actionSheet.addButtonWithTitle(mapApp as! String)
+        }
+        
+        actionSheet.addButtonWithTitle("取消")
+        actionSheet.cancelButtonIndex = mapLauncher.getMapApps().count
+        actionSheet.showInView(self.view)
+        
+    }
+    
+    // MARK: - UIActionSheetDelegate
+    
+    func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
+        
+        if buttonIndex == actionSheet.numberOfButtons - 1 {
+            
+            return
+        }
+        
+        let mapApp       = mapLauncher.getMapApps()[buttonIndex] as! String
+        let fromMapPoint = ASMapPoint(location: sourceItem.placemark.location, name: "", address: "")
+        let toMapPoint   = ASMapPoint(location: destinationItem.placemark.location, name: "", address: "")
+        
+        mapLauncher.launchMapApp(ASMapApp(rawValue: mapApp)!, fromDirections: fromMapPoint, toDirection: toMapPoint)
+    }
+    
 
     // MARK: - MKMapViewDelegate
     
