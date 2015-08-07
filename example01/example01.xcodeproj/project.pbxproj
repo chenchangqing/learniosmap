@@ -14,6 +14,7 @@
 		E6AE28AC1B74453800CCFAAC /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = E6AE28AA1B74453800CCFAAC /* LaunchScreen.xib */; };
 		E6AE28B81B74453800CCFAAC /* example01Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE28B71B74453800CCFAAC /* example01Tests.swift */; };
 		E6AE28C21B7484DF00CCFAAC /* ASMapLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE28C11B7484DF00CCFAAC /* ASMapLauncher.swift */; };
+		E6AE28C41B74A2C300CCFAAC /* SecondFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6AE28C31B74A2C300CCFAAC /* SecondFormat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		E6AE28B61B74453800CCFAAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E6AE28B71B74453800CCFAAC /* example01Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = example01Tests.swift; sourceTree = "<group>"; };
 		E6AE28C11B7484DF00CCFAAC /* ASMapLauncher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ASMapLauncher.swift; sourceTree = "<group>"; };
+		E6AE28C31B74A2C300CCFAAC /* SecondFormat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecondFormat.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +88,7 @@
 				E6AE28A81B74453800CCFAAC /* Images.xcassets */,
 				E6AE28AA1B74453800CCFAAC /* LaunchScreen.xib */,
 				E6AE289F1B74453800CCFAAC /* Supporting Files */,
+				E6AE28C31B74A2C300CCFAAC /* SecondFormat.swift */,
 			);
 			path = example01;
 			sourceTree = "<group>";
@@ -217,6 +220,7 @@
 			files = (
 				E6AE28C21B7484DF00CCFAAC /* ASMapLauncher.swift in Sources */,
 				E6AE28A41B74453800CCFAAC /* ViewController.swift in Sources */,
+				E6AE28C41B74A2C300CCFAAC /* SecondFormat.swift in Sources */,
 				E6AE28A21B74453800CCFAAC /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -10,15 +10,31 @@ import UIKit
 import MapKit
 
 class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
-
-    @IBOutlet weak var mapView: MKMapView!
+    @IBOutlet weak var lineDetailL  : UILabel!
+    @IBOutlet weak var mapView      : MKMapView!
     
-    private let sourceName      = "高安市新宇小区"
-    private let destinationName = "高安中学"
+    private let sourceName      = "郭守敬路祖冲之路"
+    private let destinationName = "人民广场地铁站"
     
     private let geocoder        = CLGeocoder()                          // 反编码类
     private let request         = MKDirectionsRequest()                 // 导航请求
-    private let transportType   = MKDirectionsTransportType.Automobile  // 当前导航类型
+    private var transportType   = MKDirectionsTransportType.Automobile  // 当前导航类型
+    {
+        willSet {
+            
+            // 设置新的导航类型
+            request.transportType = newValue
+            
+            // 删除已有的路线
+            for mkRoute in mkRouteArray {
+                
+                mapView.removeOverlay(mkRoute.polyline)
+            }
+            
+            // 重新绘制路线
+            self.drawGuideLine(sourceItem.placemark, destinationMark: destinationItem.placemark)
+        }
+    }
     
     private var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
     private var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
@@ -26,6 +42,7 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
     private var sourceItem              : MKMapItem!            // 出发地节点
     private var destinationItem         : MKMapItem!            // 目的地节点
     private var mapLauncher             : ASMapLauncher!        // 打开地图的工具类
+    private var mkRouteArray            = [MKRoute]()           // 路线数组
     
     // MARK: -
     
@@ -157,13 +174,21 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
                 return
             }
             
-            let routes = response.routes
+            self.mkRouteArray = response.routes as! [MKRoute]
             
-            for route in routes {
+            if self.mkRouteArray.count != 1 {
                 
-                let mkRoute     = route as! MKRoute
-                let polyline    = mkRoute.polyline
-                self.mapView.addOverlay(polyline)
+                println("查询出\(self.mkRouteArray.count)条路线")
+                return
+            }
+            
+            for mkRoute in self.mkRouteArray {
+                
+                self.mapView.addOverlay(mkRoute.polyline)
+                
+                let cgTravelTime  = CGFloat(mkRoute.expectedTravelTime)
+                let caculatedTime = SecondFormat.formatTime(cgTravelTime)
+                self.lineDetailL.text = "\(caculatedTime),\(mkRoute.distance)米"
             }
         }
     }
@@ -210,6 +235,28 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         
     }
     
+    // MARK: -
+    
+    /**
+     * 根据导航类型重新绘制路线
+     */
+    @IBAction func changeGuideType(sender: UISegmentedControl) {
+        
+        // println(sender.titleForSegmentAtIndex(sender.selectedSegmentIndex)!)
+        
+        // 自驾
+        if sender.selectedSegmentIndex == 0 {
+            
+            self.transportType = MKDirectionsTransportType.Automobile
+        }
+        
+        // 步行
+        if sender.selectedSegmentIndex == 1 {
+            
+            self.transportType = MKDirectionsTransportType.Walking
+        }
+    }
+    
     // MARK: - UIActionSheetDelegate
     
     func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
@@ -225,7 +272,6 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         
         mapLauncher.launchMapApp(ASMapApp(rawValue: mapApp)!, fromDirections: fromMapPoint, toDirection: toMapPoint)
     }
-    
 
     // MARK: - MKMapViewDelegate
     
