@@ -19,6 +19,9 @@ class ViewController: UIViewController,MKMapViewDelegate {
     let geocoder        = CLGeocoder()          // 反编码类
     let request         = MKDirectionsRequest() // 导航请求
     
+    var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
+    var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
+    
     // MARK: -
     
     override func viewDidLoad() {
@@ -68,9 +71,16 @@ class ViewController: UIViewController,MKMapViewDelegate {
                 // 出发地、目的地都不为空
                 if sourcemarks != nil && destinationmarks != nil {
                     
+                    // 地理位置信息
                     let sourcemark      = sourcemarks[0] as! CLPlacemark
                     let destinationmark = destinationmarks[0] as! CLPlacemark
                     
+                    // 地图区域
+                    let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
+                    let currentRegion           = MKCoordinateRegionMake(destinationmark.location.coordinate, currentLocationSpan)
+                    self.mapView.setRegion(currentRegion, animated: false)
+                    
+                    // 回调
                     callback(sourceMark: sourcemark, destinationMark: destinationmark)
                 } else {
                     
@@ -89,13 +99,13 @@ class ViewController: UIViewController,MKMapViewDelegate {
      */
     private func addAnnotions(sourceMark:CLPlacemark,destinationMark:CLPlacemark) {
         
-        let sourceAnnotation        = MKPointAnnotation()
+        sourceAnnotation            = MKPointAnnotation()
         sourceAnnotation.title      = sourceName
         sourceAnnotation.subtitle   = sourceMark.name
         sourceAnnotation.coordinate = sourceMark.location.coordinate
         mapView.addAnnotation(sourceAnnotation)
         
-        let destinationAnnotation           = MKPointAnnotation()
+        destinationAnnotation               = MKPointAnnotation()
         destinationAnnotation.title         = destinationName
         destinationAnnotation.subtitle      = destinationMark.name
         destinationAnnotation.coordinate    = destinationMark.location.coordinate
@@ -169,7 +179,16 @@ class ViewController: UIViewController,MKMapViewDelegate {
         }
         
         // 大头针颜色
-        pinAnnotationView!.pinColor = MKPinAnnotationColor.Green
+        let annotation = annotation as! MKPointAnnotation
+        if annotation == sourceAnnotation {
+            
+            pinAnnotationView!.pinColor = MKPinAnnotationColor.Green
+        }
+        
+        if annotation == destinationAnnotation {
+            
+            pinAnnotationView!.pinColor = MKPinAnnotationColor.Red
+        }
         return  pinAnnotationView
     }
     
