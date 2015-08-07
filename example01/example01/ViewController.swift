@@ -22,12 +22,16 @@ class ViewController: UIViewController,MKMapViewDelegate {
     var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
     var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
     
+    var sourceItem              : MKMapItem!            // 出发地节点
+    var destinationItem         : MKMapItem!            // 目的地节点
+    
     // MARK: -
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        mapView.delegate = self
+        mapView.delegate = self                                         // 地图代理
+        request.transportType = MKDirectionsTransportType.Automobile    // 路径类型汽车
         
         // 反编码出CLPlacemark对象
         geocodeAddress(sourceName, destinationName: destinationName) { (sourceMark, destinationMark) -> Void in
@@ -123,13 +127,13 @@ class ViewController: UIViewController,MKMapViewDelegate {
     private func drawGuideLine(sourceMark:CLPlacemark,destinationMark:CLPlacemark) {
         
         // 开始地点节点
-        let sourcemkmark = MKPlacemark(placemark: sourceMark)
-        let sourceItem   = MKMapItem(placemark: sourcemkmark)
+        let sourcemkmark    = MKPlacemark(placemark: sourceMark)
+        sourceItem          = MKMapItem(placemark: sourcemkmark)
         request.setSource(sourceItem)
         
         // 结束地点节点
-        let destinationmkmark = MKPlacemark(placemark: destinationMark)
-        let destinationItem   = MKMapItem(placemark: destinationmkmark)
+        let destinationmkmark   = MKPlacemark(placemark: destinationMark)
+        destinationItem         = MKMapItem(placemark: destinationmkmark)
         request.setDestination(destinationItem)
         
         // 从apple服务器获取数据的连接类
@@ -159,6 +163,18 @@ class ViewController: UIViewController,MKMapViewDelegate {
      * 打开苹果地图或谷歌地图
      */
     @IBAction func navigationClick(sender: UIButton) {
+        
+        // 设置开始、结束节点
+        let mapItems = [sourceItem,destinationItem]
+        
+        // 设置导航模式
+        let dic: [NSObject : AnyObject] = [
+            MKLaunchOptionsDirectionsModeKey:MKLaunchOptionsDirectionsModeDriving,
+            MKLaunchOptionsShowsTrafficKey:true
+        ]
+        
+        // 打开苹果地图开始导航
+        MKMapItem.openMapsWithItems(mapItems, launchOptions: dic)
     }
 
     // MARK: - MKMapViewDelegate
