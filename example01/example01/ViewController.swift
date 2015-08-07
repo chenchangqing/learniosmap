@@ -30,8 +30,9 @@ class ViewController: UIViewController,MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        mapView.delegate = self                                         // 地图代理
-        request.transportType = MKDirectionsTransportType.Automobile    // 路径类型汽车
+        mapView.delegate                = self                                    // 地图代理
+        request.transportType           = MKDirectionsTransportType.Automobile    // 路径类型汽车
+        request.requestsAlternateRoutes = false                                   // 设置是否搜索多条线路
         
         // 反编码出CLPlacemark对象
         geocodeAddress(sourceName, destinationName: destinationName) { (sourceMark, destinationMark) -> Void in
