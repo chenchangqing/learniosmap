@@ -13,11 +13,12 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
 
     @IBOutlet weak var mapView: MKMapView!
     
-    private let sourceName      = "上海"
-    private let destinationName = "高安"
+    private let sourceName      = "高安市新宇小区"
+    private let destinationName = "高安中学"
     
-    private let geocoder        = CLGeocoder()          // 反编码类
-    private let request         = MKDirectionsRequest() // 导航请求
+    private let geocoder        = CLGeocoder()                          // 反编码类
+    private let request         = MKDirectionsRequest()                 // 导航请求
+    private let transportType   = MKDirectionsTransportType.Automobile  // 当前导航类型
     
     private var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
     private var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
@@ -33,7 +34,7 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         
         mapLauncher                     = ASMapLauncher()
         mapView.delegate                = self                                    // 地图代理
-        request.transportType           = MKDirectionsTransportType.Automobile    // 路径类型汽车
+        request.transportType           = transportType                           // 路径类型汽车
         request.requestsAlternateRoutes = false                                   // 设置是否搜索多条线路
         
         // 反编码出CLPlacemark对象
@@ -63,7 +64,13 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
             
             if let error = error {
                 
-                println("反编码失败")
+                println("出发地反编码失败")
+                return
+            }
+            
+            if sourcemarks?.count == 0 {
+                
+                println("没有查询到出发地")
                 return
             }
             
@@ -71,33 +78,32 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
                 
                 if let error = error {
                     
-                    println("反编码失败")
+                    println("目的地反编码失败")
                     return
                 }
                 
-                // 出发地、目的地都不为空
-                if sourcemarks != nil && destinationmarks != nil {
+                if destinationmarks?.count == 0 {
                     
-                    // 地理位置信息
-                    let sourcemark      = sourcemarks[0] as! CLPlacemark
-                    let destinationmark = destinationmarks[0] as! CLPlacemark
-                    
-                    // 地图区域
-                    let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
-                    let currentRegion           = MKCoordinateRegionMake(destinationmark.location.coordinate, currentLocationSpan)
-                    self.mapView.setRegion(currentRegion, animated: false)
-                    
-                    // 回调
-                    callback(sourceMark: sourcemark, destinationMark: destinationmark)
-                } else {
-                    
-                    println("没有查询到出发地或目的地")
+                    println("没有查询到目的地")
+                    return
                 }
+                
+                // 地理位置信息
+                let sourcemark      = sourcemarks[0] as! CLPlacemark
+                let destinationmark = destinationmarks[0] as! CLPlacemark
+                
+                // 地图区域
+                let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
+                let currentRegion           = MKCoordinateRegionMake(destinationmark.location.coordinate, currentLocationSpan)
+                self.mapView.setRegion(currentRegion, animated: false)
+                
+                // 回调
+                callback(sourceMark: sourcemark, destinationMark: destinationmark)
             })
         })
     }
     
-    /** 
+    /**
      * 根据地理信息增加地图标注
      * @param sourceMark 出发地位置信息
      * @param destinationMark 目的地位置信息
