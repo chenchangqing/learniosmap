@@ -3,7 +3,6 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -21,8 +20,19 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="eq4-co-yOU">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </mapView>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="jXy-2Q-Ijh">
+                                <rect key="frame" x="147" y="619" width="81" height="29"/>
+                                <segments>
+                                    <segment title="自驾"/>
+                                    <segment title="步行"/>
+                                </segments>
+                            </segmentedControl>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="nit-3y-131">
-                                <rect key="frame" x="16" y="20" width="30" height="30"/>
+                                <rect key="frame" x="8" y="618" width="80" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="79g-i7-yXF"/>
+                                    <constraint firstAttribute="width" constant="80" id="X2h-41-KMJ"/>
+                                </constraints>
                                 <state key="normal" title="导航">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                 </state>
@@ -33,12 +43,14 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
-                            <constraint firstItem="eq4-co-yOU" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="BMY-3U-YLL"/>
-                            <constraint firstItem="eq4-co-yOU" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="E7Y-yC-Uan"/>
-                            <constraint firstItem="nit-3y-131" firstAttribute="top" secondItem="jyV-Pf-zRb" secondAttribute="bottom" id="TVG-7P-vOr"/>
-                            <constraint firstAttribute="trailing" secondItem="eq4-co-yOU" secondAttribute="trailing" id="d4W-Y3-sEX"/>
-                            <constraint firstItem="eq4-co-yOU" firstAttribute="bottom" secondItem="2fi-mo-0CV" secondAttribute="top" id="gBA-4f-dfd"/>
-                            <constraint firstItem="nit-3y-131" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" id="y7D-t4-N4I"/>
+                            <constraint firstItem="nit-3y-131" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" constant="8" id="2OV-RH-EbR"/>
+                            <constraint firstItem="eq4-co-yOU" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="top" id="Mmx-K4-TP0"/>
+                            <constraint firstAttribute="centerX" secondItem="jXy-2Q-Ijh" secondAttribute="centerX" id="P4y-CC-EG4"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="jXy-2Q-Ijh" secondAttribute="bottom" constant="20" id="XQN-1R-ubv"/>
+                            <constraint firstItem="nit-3y-131" firstAttribute="centerY" secondItem="jXy-2Q-Ijh" secondAttribute="centerY" id="jAD-RN-9Rp"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="eq4-co-yOU" secondAttribute="bottom" id="lWz-wd-1yW"/>
+                            <constraint firstAttribute="trailing" secondItem="eq4-co-yOU" secondAttribute="trailing" id="ooX-vf-2Bf"/>
+                            <constraint firstItem="eq4-co-yOU" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="rXo-Tc-tPz"/>
                         </constraints>
                     </view>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina47"/>
