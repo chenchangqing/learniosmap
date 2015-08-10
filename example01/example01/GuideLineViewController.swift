@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  GuideLineViewController.swift
 //  example01
 //
 //  Created by green on 15/8/7.
@@ -9,7 +9,7 @@
 import UIKit
 import MapKit
 
-class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate,CLLocationManagerDelegate {
+class GuideLineViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate,CLLocationManagerDelegate {
     
     @IBOutlet weak var lineDetailL  : UILabel!
     @IBOutlet weak var mapView      : MKMapView!
