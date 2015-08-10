@@ -9,40 +9,103 @@
 import UIKit
 import MapKit
 
-class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
+class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate,CLLocationManagerDelegate {
+    
     @IBOutlet weak var lineDetailL  : UILabel!
     @IBOutlet weak var mapView      : MKMapView!
     
-    private let sourceName      = "郭守敬路祖冲之路"
-    private let destinationName = "人民广场地铁站"
-    
-    private let geocoder        = CLGeocoder()                          // 反编码类
     private let request         = MKDirectionsRequest()                 // 导航请求
-    private var transportType   = MKDirectionsTransportType.Automobile  // 当前导航类型
+    private var transportType   : MKDirectionsTransportType?   // 当前导航类型
     {
         willSet {
             
-            // 设置新的导航类型
-            request.transportType = newValue
-            
-            // 删除已有的路线
-            for mkRoute in mkRouteArray {
+            if let newValue = newValue {
                 
-                mapView.removeOverlay(mkRoute.polyline)
+                // 设置新的导航类型
+                request.transportType = newValue
+                
+                // 删除已有的路线
+                for mkRoute in mkRouteArray {
+                    
+                    mapView.removeOverlay(mkRoute.polyline)
+                }
+                
+                // 重新绘制路线
+                if let destinationPlaceMark=destinationPlaceMark {
+                    
+                    self.drawGuideLine(destinationPlaceMark)
+                }
             }
-            
-            // 重新绘制路线
-            self.drawGuideLine(sourceItem.placemark, destinationMark: destinationItem.placemark)
         }
     }
     
-    private var sourceAnnotation        : MKPointAnnotation!    // 出发地标注
-    private var destinationAnnotation   : MKPointAnnotation!    // 目的地标注
+    var destinationCoordinate       : CLLocationCoordinate2D?   // 目标经纬度
+    {
+        willSet{
+            
+            if let newValue=newValue {
+                
+                // 地图区域
+                let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
+                let currentRegion           = MKCoordinateRegionMake(newValue, currentLocationSpan)
+                self.mapView.setRegion(currentRegion, animated: false)
+                
+                // 经纬度转地址
+                geocoder.reverseGeocodeLocation(CLLocation(latitude: newValue.latitude, longitude: newValue.longitude), completionHandler: { (array, error) -> Void in
+                    
+                    if let error=error {
+                        
+                        println("目的地定位失败")
+                        return
+                    }
+                    
+                    if array.count > 0 {
+                        
+                        self.destinationPlaceMark                   = array[0] as? CLPlacemark
+                        self.transportType                          = MKDirectionsTransportType.Automobile
+                        
+                        // 增加出发地标注
+                        self.destinationAnnotation                  = MKPointAnnotation()
+                        self.destinationAnnotation!.title           = self.destinationPlaceMark!.name
+                        self.destinationAnnotation!.coordinate      = newValue
+                        self.mapView.addAnnotation(self.destinationAnnotation!)
+                    }
+                })
+            } else {
+                
+                if let destinationAnnotation=destinationAnnotation {
+                    
+                    self.mapView.removeAnnotation(destinationAnnotation)
+                }
+                
+                self.destinationPlaceMark    = nil
+                self.destinationAnnotation   = nil
+            }
+            
+        }
+    }
     
-    private var sourceItem              : MKMapItem!            // 出发地节点
-    private var destinationItem         : MKMapItem!            // 目的地节点
+    private var destinationAnnotation   : MKPointAnnotation?    // 目的地标注
+    private var destinationPlaceMark    : CLPlacemark?          // 目的地信息
+    
     private var mapLauncher             : ASMapLauncher!        // 打开地图的工具类
     private var mkRouteArray            = [MKRoute]()           // 路线数组
+    private let geocoder                = CLGeocoder()          // 编码反编码
+    
+    // 定位服务
+    lazy var locationManager : CLLocationManager = {
+        
+        let locationManager             = CLLocationManager()
+        locationManager.delegate        = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.distanceFilter  = 10
+        
+        if UIDevice.currentDevice().systemVersion >= "8.0.0" {
+            
+            locationManager.requestWhenInUseAuthorization()
+        }
+        return locationManager
+    }()
     
     // MARK: -
     
@@ -51,96 +114,41 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         
         mapLauncher                     = ASMapLauncher()
         mapView.delegate                = self                                    // 地图代理
-        request.transportType           = transportType                           // 路径类型汽车
         request.requestsAlternateRoutes = false                                   // 设置是否搜索多条线路
+        mapView.showsUserLocation       = true
         
-        // 反编码出CLPlacemark对象
-        geocodeAddress(sourceName, destinationName: destinationName) { (sourceMark, destinationMark) -> Void in
-            
-            // 增加标注
-            self.addAnnotions(sourceMark, destinationMark: destinationMark)
-            
-            // 划线
-            self.drawGuideLine(sourceMark, destinationMark: destinationMark)
-        }
+        // 开始定位
+        startUpdatingL()
+        
+        // 触发增加标注、划线
+        self.destinationCoordinate      = CLLocationCoordinate2D(latitude:31.216739784766 , longitude: 121.587560439984)
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
     }
     
     // MARK: -
     
     /**
-     * 将出发地、目的地反编码
-     * @param sourceName 出发地名称
-     * @param destinationName 目的地名称
-     * @param callback 回调函数
-     *
-     * @return 
+     * 开始定位
      */
-    private func geocodeAddress(sourceName:String, destinationName:String, callback:(sourceMark:CLPlacemark,destinationMark:CLPlacemark) -> Void) {
+    func startUpdatingL() {
         
-        geocoder.geocodeAddressString(sourceName, completionHandler: { (sourcemarks, error) -> Void in
+        if CLLocationManager.locationServicesEnabled() {
             
-            if let error = error {
+            if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.Denied {
                 
-                println("出发地反编码失败")
-                return
+                let alertVC = UIAlertController(title: "提示", message: "需要开启定位服务,请到设置->隐私,打开定位服务", preferredStyle: UIAlertControllerStyle.Alert)
+                let ok = UIAlertAction(title: "好", style: UIAlertActionStyle.Default, handler: nil)
+                alertVC.addAction(ok)
+                self.presentViewController(alertVC, animated: true, completion: nil)
+            } else {
+                
+                locationManager.startUpdatingLocation()
             }
-            
-            if sourcemarks?.count == 0 {
-                
-                println("没有查询到出发地")
-                return
-            }
-            
-            self.geocoder.geocodeAddressString(destinationName, completionHandler: { (destinationmarks, error) -> Void in
-                
-                if let error = error {
-                    
-                    println("目的地反编码失败")
-                    return
-                }
-                
-                if destinationmarks?.count == 0 {
-                    
-                    println("没有查询到目的地")
-                    return
-                }
-                
-                // 地理位置信息
-                let sourcemark      = sourcemarks[0] as! CLPlacemark
-                let destinationmark = destinationmarks[0] as! CLPlacemark
-                
-                // 地图区域
-                let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
-                let currentRegion           = MKCoordinateRegionMake(destinationmark.location.coordinate, currentLocationSpan)
-                self.mapView.setRegion(currentRegion, animated: false)
-                
-                // 回调
-                callback(sourceMark: sourcemark, destinationMark: destinationmark)
-            })
-        })
-    }
-    
-    /**
-     * 根据地理信息增加地图标注
-     * @param sourceMark 出发地位置信息
-     * @param destinationMark 目的地位置信息
-     * 
-     * @return
-     */
-    private func addAnnotions(sourceMark:CLPlacemark,destinationMark:CLPlacemark) {
-        
-        sourceAnnotation            = MKPointAnnotation()
-        sourceAnnotation.title      = sourceName
-        sourceAnnotation.subtitle   = sourceMark.name
-        sourceAnnotation.coordinate = sourceMark.location.coordinate
-        mapView.addAnnotation(sourceAnnotation)
-        
-        destinationAnnotation               = MKPointAnnotation()
-        destinationAnnotation.title         = destinationName
-        destinationAnnotation.subtitle      = destinationMark.name
-        destinationAnnotation.coordinate    = destinationMark.location.coordinate
-        mapView.addAnnotation(destinationAnnotation)
-        
+        }
     }
     
     /**
@@ -150,16 +158,14 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
      *
      * @return
      */
-    private func drawGuideLine(sourceMark:CLPlacemark,destinationMark:CLPlacemark) {
+    private func drawGuideLine(destinationMark:CLPlacemark) {
         
         // 开始地点节点
-        let sourcemkmark    = MKPlacemark(placemark: sourceMark)
-        sourceItem          = MKMapItem(placemark: sourcemkmark)
-        request.setSource(sourceItem)
+        request.setSource(MKMapItem.mapItemForCurrentLocation())
         
         // 结束地点节点
         let destinationmkmark   = MKPlacemark(placemark: destinationMark)
-        destinationItem         = MKMapItem(placemark: destinationmkmark)
+        let destinationItem     = MKMapItem(placemark: destinationmkmark)
         request.setDestination(destinationItem)
         
         // 从apple服务器获取数据的连接类
@@ -200,39 +206,38 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
      */
     @IBAction func navigationClick(sender: UIButton) {
         
-//        lanunchTypeOne()
-        lanunchTypeTwo()
+        if let sourceCoordinate=mapView.userLocation {
+            if let destinationCoordinate=destinationCoordinate {
+                
+                // 使用ActionSheet
+                let actionSheet = UIActionSheet(title: "请选择", delegate: self, cancelButtonTitle: nil, destructiveButtonTitle: nil)
+                
+                for mapApp in mapLauncher.getMapApps() {
+                    
+                    actionSheet.addButtonWithTitle(mapApp as! String)
+                }
+                
+                actionSheet.addButtonWithTitle("取消")
+                actionSheet.cancelButtonIndex = mapLauncher.getMapApps().count
+                actionSheet.showInView(self.view)
+            }
+        }
     }
     
-    private func lanunchTypeOne() {
-        
-        // 设置开始、结束节点
-        let mapItems = [sourceItem,destinationItem]
-        
-        // 设置导航模式
-        let dic: [NSObject : AnyObject] = [
-            MKLaunchOptionsDirectionsModeKey:MKLaunchOptionsDirectionsModeDriving,
-            MKLaunchOptionsShowsTrafficKey:true
-        ]
-        
-        // 打开苹果地图开始导航
-        MKMapItem.openMapsWithItems(mapItems, launchOptions: dic)
-    }
+    // MARK: - UIActionSheetDelegate
     
-    private func lanunchTypeTwo() {
+    func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
         
-        // 使用ActionSheet
-        let actionSheet = UIActionSheet(title: "请选择", delegate: self, cancelButtonTitle: nil, destructiveButtonTitle: nil)
-        
-        for mapApp in mapLauncher.getMapApps() {
+        if buttonIndex == actionSheet.numberOfButtons - 1 {
             
-            actionSheet.addButtonWithTitle(mapApp as! String)
+            return
         }
         
-        actionSheet.addButtonWithTitle("取消")
-        actionSheet.cancelButtonIndex = mapLauncher.getMapApps().count
-        actionSheet.showInView(self.view)
+        let mapApp       = mapLauncher.getMapApps()[buttonIndex] as! String
+        let fromMapPoint = ASMapPoint(location: mapView.userLocation.location , name: "", address: "")
+        let toMapPoint   = ASMapPoint(location: CLLocation(latitude: destinationCoordinate!.latitude, longitude: destinationCoordinate!.longitude), name: "", address: "")
         
+        mapLauncher.launchMapApp(ASMapApp(rawValue: mapApp)!, fromDirections: fromMapPoint, toDirection: toMapPoint)
     }
     
     // MARK: -
@@ -256,22 +261,6 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
             self.transportType = MKDirectionsTransportType.Walking
         }
     }
-    
-    // MARK: - UIActionSheetDelegate
-    
-    func actionSheet(actionSheet: UIActionSheet, clickedButtonAtIndex buttonIndex: Int) {
-        
-        if buttonIndex == actionSheet.numberOfButtons - 1 {
-            
-            return
-        }
-        
-        let mapApp       = mapLauncher.getMapApps()[buttonIndex] as! String
-        let fromMapPoint = ASMapPoint(location: sourceItem.placemark.location, name: "", address: "")
-        let toMapPoint   = ASMapPoint(location: destinationItem.placemark.location, name: "", address: "")
-        
-        mapLauncher.launchMapApp(ASMapApp(rawValue: mapApp)!, fromDirections: fromMapPoint, toDirection: toMapPoint)
-    }
 
     // MARK: - MKMapViewDelegate
     
@@ -291,13 +280,12 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         }
         
         // 大头针颜色
-        let annotation = annotation as! MKPointAnnotation
-        if annotation == sourceAnnotation {
+        if annotation is MKUserLocation  {
             
             pinAnnotationView!.pinColor = MKPinAnnotationColor.Green
         }
         
-        if annotation == destinationAnnotation {
+        if annotation is MKPointAnnotation {
             
             pinAnnotationView!.pinColor = MKPinAnnotationColor.Red
         }
@@ -313,6 +301,17 @@ class ViewController: UIViewController,MKMapViewDelegate,UIActionSheetDelegate {
         render.lineWidth    = 5
         render.strokeColor  = UIColor.blueColor()
         return render
+    }
+    
+    // MARK: - CLLocationManagerDelegate
+    
+    func locationManager(manager: CLLocationManager!, didFailWithError error: NSError!) {
+        
+        locationManager.stopUpdatingLocation()
+    }
+    
+    func locationManager(manager: CLLocationManager!, didUpdateToLocation newLocation: CLLocation!, fromLocation oldLocation: CLLocation!) {
+        
     }
 }
 
