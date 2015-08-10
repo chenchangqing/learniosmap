@@ -45,6 +45,11 @@ class GuideLineViewController: UIViewController,MKMapViewDelegate,UIActionSheetD
             
             if let newValue=newValue {
                 
+                if !CLLocationCoordinate2DIsValid(newValue) {
+                    
+                    return
+                }
+                
                 // 地图区域
                 let currentLocationSpan     = MKCoordinateSpanMake(0.05, 0.05)
                 let currentRegion           = MKCoordinateRegionMake(newValue, currentLocationSpan)
